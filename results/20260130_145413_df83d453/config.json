@@ -1,0 +1,50 @@
+{
+  "testing": {
+    "sampling": {
+      "measurements_count": 100,
+      "total_duration_seconds": 60,
+      "sampling_frequency_hz": 10
+    }
+  },
+  "ammeters": {
+    "greenlee": {
+      "port": 5000,
+      "command": "MEASURE_GREENLEE -get_measurement"
+    },
+    "entes": {
+      "port": 5001,
+      "command": "MEASURE_ENTES -get_data"
+    },
+    "circutor": {
+      "port": 5002,
+      "command": "MEASURE_CIRCUTOR -get_measurement"
+    }
+  },
+  "analysis": {
+    "statistical_metrics": [
+      "mean",
+      "median",
+      "std_dev",
+      "min",
+      "max"
+    ],
+    "visualization": {
+      "enabled": true,
+      "plot_types": [
+        "time_series",
+        "histogram",
+        "box_plot"
+      ]
+    }
+  },
+  "result_management": {
+    "save_path": "results/",
+    "save_format": "json",
+    "metadata_fields": [
+      "timestamp",
+      "ammeter_type",
+      "test_duration",
+      "sampling_frequency"
+    ]
+  }
+}

@@ -1,0 +1,39 @@
+# Scenario: fault injection enabled (bonus)
+
+testing:
+  sampling:
+    measurements_count: 50
+    total_duration_seconds: null
+    sampling_frequency_hz: 10
+
+ammeters:
+  greenlee:
+    port: 5000
+    command: "MEASURE_GREENLEE -get_measurement"
+  entes:
+    port: 5001
+    command: "MEASURE_ENTES -get_data"
+  circutor:
+    port: 5002
+    command: "MEASURE_CIRCUTOR -get_measurement"
+
+analysis:
+  statistical_metrics: [mean, median, std_dev, min, max]
+  visualization:
+    enabled: true
+    plot_types: [time_series, histogram]
+
+result_management:
+  save_path: "results/"
+  save_format: "json"
+  metadata_fields: [timestamp, test_duration, sampling_frequency, ammeter_type]
+
+fault_injection:
+  enabled: true
+  drop_prob: 0.05
+  delay_prob: 0.05
+  delay_ms_min: 10
+  delay_ms_max: 200
+  corrupt_prob: 0.01
+  outlier_prob: 0.01
+  outlier_scale: 10

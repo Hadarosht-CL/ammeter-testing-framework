@@ -1,0 +1,62 @@
+{
+  "generated_at_epoch": 1769710767.4582002,
+  "sampling": {
+    "measurements_count": 15,
+    "total_duration_seconds": null,
+    "sampling_frequency_hz": 5.0
+  },
+  "stats_by_ammeter": {
+    "greenlee": {
+      "count": 15,
+      "ok_count": 15,
+      "mean": 0.17276296593782334,
+      "median": 0.11316860858735217,
+      "std_dev": 0.15239998764921792,
+      "min": 0.013228816355021834,
+      "max": 0.5620231426814049
+    },
+    "entes": {
+      "count": 15,
+      "ok_count": 15,
+      "mean": 73.53899411078557,
+      "median": 78.02159846116709,
+      "std_dev": 30.647001248206404,
+      "min": 29.914963344592213,
+      "max": 125.4839601419378
+    },
+    "circutor": {
+      "count": 15,
+      "ok_count": 15,
+      "mean": 0.031745621095892414,
+      "median": 0.02652271231892603,
+      "std_dev": 0.015906027121538654,
+      "min": 0.0072241111807224,
+      "max": 0.05751926324712206
+    }
+  },
+  "pairwise_agreement": {
+    "circutor__entes": {
+      "mae": 73.50724848968967,
+      "rmse": 79.6396257578322,
+      "correlation": 0.08670054992769377,
+      "paired_count": 15
+    },
+    "circutor__greenlee": {
+      "mae": 0.1410173448419309,
+      "rmse": 0.206002786551657,
+      "correlation": 0.191310115557315,
+      "paired_count": 15
+    },
+    "entes__greenlee": {
+      "mae": 73.36623114484775,
+      "rmse": 79.48497394291563,
+      "correlation": 0.4287135183592565,
+      "paired_count": 15
+    }
+  },
+  "reliability_ranking": [
+    "circutor",
+    "greenlee",
+    "entes"
+  ]
+}
