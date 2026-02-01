@@ -1,7 +1,6 @@
 # Submitter details:
 Name: Hadar Rosht
 Date: 30/01/2026
-Referred to: Paz Magaziner
 
 # Ammeter Testing Exercise (Embedded Systems QA)
 
