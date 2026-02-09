@@ -18,8 +18,10 @@ def _series_by_ammeter(measurements: List[Measurement]) -> Dict[str, List[float]
 
 
 def plot_time_series(measurements: List[Measurement], out_dir: Path) -> None:
-    out_dir.mkdir(parents=True, exist_ok=True)
     series = _series_by_ammeter(measurements)
+    if not series or all(len(vals) == 0 for vals in series.values()):
+        return
+    out_dir.mkdir(parents=True, exist_ok=True)
     plt.figure()
     for name, vals in series.items():
         plt.plot(list(range(len(vals))), vals, label=name)
@@ -33,8 +35,10 @@ def plot_time_series(measurements: List[Measurement], out_dir: Path) -> None:
 
 
 def plot_histogram(measurements: List[Measurement], out_dir: Path) -> None:
-    out_dir.mkdir(parents=True, exist_ok=True)
     series = _series_by_ammeter(measurements)
+    if not series or all(len(vals) == 0 for vals in series.values()):
+        return
+    out_dir.mkdir(parents=True, exist_ok=True)
     plt.figure()
     for name, vals in series.items():
         if vals:
@@ -49,8 +53,10 @@ def plot_histogram(measurements: List[Measurement], out_dir: Path) -> None:
 
 
 def plot_box(measurements: List[Measurement], out_dir: Path) -> None:
-    out_dir.mkdir(parents=True, exist_ok=True)
     series = _series_by_ammeter(measurements)
+    if not series or all(len(vals) == 0 for vals in series.values()):
+        return
+    out_dir.mkdir(parents=True, exist_ok=True)
     names = list(series.keys())
     vals = [series[n] for n in names]
     plt.figure()
