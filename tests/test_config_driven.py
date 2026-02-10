@@ -7,18 +7,28 @@ This test demonstrates:
 - Parsing the configuration file
 - Running the project framework
 - Saving results
+- Reporting measurement errors at the end of the test
 
 Usage:
+  # Using unittest with default config
   python -m unittest tests.test_config_driven -v
-  python -m unittest tests.test_config_driven -v -- --config configs/sample_quick.yaml
-  python -m unittest tests.test_config_driven -v -- --config configs/scenario_fault_injection.yaml
+
+  # Using the wrapper script with default config
+  python run_config_test.py -v
+
+  # Using the wrapper script with custom config
+  python run_config_test.py --config configs/sample_quick.yaml -v
+  python run_config_test.py --config configs/scenario_fault_injection.yaml -v
+  python run_config_test.py --config configs/scenario_duration_based.yaml -v
+  python run_config_test.py --config configs/scenario_datadog.yaml -v
 """
 
-import argparse
-import sys
+import json
+import os
 import time
 import unittest
 from pathlib import Path
+from collections import defaultdict
 
 from Ammeters.Circutor_Ammeter import CircutorAmmeter
 from Ammeters.Entes_Ammeter import EntesAmmeter
@@ -38,25 +48,81 @@ class TestConfigDrivenFramework(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        """Parse command-line arguments and get the config path."""
-        # Remove unittest's test arguments to avoid conflicts
-        parser = argparse.ArgumentParser(description="Ammeter Testing Framework")
-        parser.add_argument(
-            "--config",
-            type=str,
-            default="configs/sample_quick.yaml",
-            help="Path to the configuration file (default: configs/sample_quick.yaml)",
-        )
+        """Get config path from environment variable or use default."""
+        config_path = os.environ.get("AMMETER_TEST_CONFIG", "configs/sample_quick.yaml")
+        cls.config_path = Path(config_path)
 
-        # Filter out unittest arguments
-        custom_args = [
-            arg for arg in sys.argv[1:]
-            if arg not in ["-v", "-q", "--verbose", "--help", "-h"]
-            and not arg.startswith("tests.")
-        ]
-
-        args, _ = parser.parse_known_args(custom_args)
-        cls.config_path = Path(args.config)
+    @staticmethod
+    def _analyze_and_report_errors(measurements_file: Path) -> None:
+        """
+        Load measurements from JSON file and report any errors to console.
+        
+        Args:
+            measurements_file: Path to the measurements.json file
+        """
+        if not measurements_file.exists():
+            return
+        
+        try:
+            with measurements_file.open("r", encoding="utf-8") as f:
+                measurements = json.load(f)
+        except (json.JSONDecodeError, IOError):
+            return
+        
+        # Collect error statistics
+        error_count = 0
+        error_by_type = defaultdict(int)
+        error_by_ammeter = defaultdict(int)
+        failed_measurements = []
+        
+        for i, measurement in enumerate(measurements):
+            if not measurement.get("ok", True):
+                error_count += 1
+                error_type = measurement.get("error", "unknown")
+                ammeter = measurement.get("ammeter", "unknown")
+                
+                error_by_type[error_type] += 1
+                error_by_ammeter[ammeter] += 1
+                
+                failed_measurements.append({
+                    "index": i,
+                    "ammeter": ammeter,
+                    "error": error_type,
+                    "timestamp": measurement.get("wall_time_epoch"),
+                    "latency_s": measurement.get("latency_s"),
+                })
+        
+        # Print error report to console if there are errors
+        if error_count > 0:
+            print("\n" + "=" * 80)
+            print("⚠️  MEASUREMENT ERROR REPORT")
+            print("=" * 80)
+            
+            print(f"\n📊 SUMMARY:")
+            print(f"   Total Errors: {error_count} / {len(measurements)} measurements")
+            print(f"   Error Rate: {100.0 * error_count / len(measurements):.2f}%")
+            
+            print(f"\n📈 ERRORS BY TYPE:")
+            for error_type in sorted(error_by_type.keys()):
+                count = error_by_type[error_type]
+                percentage = 100.0 * count / error_count
+                print(f"   - {error_type}: {count} ({percentage:.1f}%)")
+            
+            print(f"\n🔧 ERRORS BY AMMETER:")
+            for ammeter in sorted(error_by_ammeter.keys()):
+                count = error_by_ammeter[ammeter]
+                percentage = 100.0 * count / error_count
+                print(f"   - {ammeter}: {count} ({percentage:.1f}%)")
+            
+            print(f"\n📋 DETAILED ERRORS (first 20):")
+            for measurement in failed_measurements[:20]:
+                print(f"   [{measurement['index']:3d}] {measurement['ammeter']:10s} "
+                      f"error={measurement['error']:15s} latency={measurement['latency_s']:.3f}s")
+            
+            if len(failed_measurements) > 20:
+                print(f"   ... and {len(failed_measurements) - 20} more errors")
+            
+            print("\n" + "=" * 80 + "\n")
 
     def test_config_driven_framework(self):
 
@@ -131,6 +197,10 @@ class TestConfigDrivenFramework(unittest.TestCase):
                 (run_dir / "measurements.json").exists(),
                 "Measurements should be saved in JSON format",
             )
+        
+        # Analyze and report any measurement errors at the end
+        measurements_file = run_dir / "measurements.json"
+        self._analyze_and_report_errors(measurements_file)
 
 
 if __name__ == "__main__":
